@@ -1,66 +1,37 @@
-#!/usr/bin/env python
-"""Simple Bot to reply to Telegram messages.
-
-This is built on the API wrapper, see echobot.py to see the same example built
-on the telegram.ext bot framework.
-This program is dedicated to the public domain under the CC0 license.
-"""
-import asyncio
-import contextlib
-import logging
 import os
-from typing import NoReturn
+from flask import Flask, request, jsonify
 
-from telegram import Bot, Update
-from telegram.error import Forbidden, NetworkError
+app = Flask(__name__)
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-# set higher logging level for httpx to avoid all GET and POST requests being logged
-logging.getLogger("httpx").setLevel(logging.WARNING)
+@app.route('/', methods=['GET'])
+def home():
+    return "OK", 200
 
-logger = logging.getLogger(__name__)
+# Rota para lidar com as requisições do webhook
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    req = request.get_json(silent=True, force=True)
+    
+    # Processar a intent recebida
+    intent_name = req.get('queryResult').get('intent').get('displayName')
+    
+    # Tratamento baseado no nome da intent
+    if intent_name == 'Opção 1 Intent':
+        response_text = "Você escolheu a Opção 1."
+    elif intent_name == 'Opção 2 Intent':
+        response_text = "Você escolheu a Opção 2."
+    else:
+        response_text = "Desculpe, não entendi sua escolha."
 
+    # Montar a resposta para o Dialogflow
+    return make_webhook_response(response_text)
 
-async def main() -> NoReturn:
-    """Run the bot."""
-    # Here we use the `async with` syntax to properly initialize and shutdown resources.
-    async with Bot("6493391984:AAEWuIju2AShePt3ftUmmZHlqGSNa7a_5JI") as bot:
-        # get the first pending update_id, this is so we can skip over it in case
-        # we get a "Forbidden" exception.
-        try:
-            update_id = (await bot.get_updates())[0].update_id
-        except IndexError:
-            update_id = None
-
-        logger.info("listening for new messages...")
-        while True:
-            try:
-                update_id = await echo(bot, update_id)
-            except NetworkError:
-                await asyncio.sleep(1)
-            except Forbidden:
-                # The user has removed or blocked the bot.
-                update_id += 1
-
-
-async def echo(bot: Bot, update_id: int) -> int:
-    """Echo the message the user sent."""
-    # Request updates after the last update_id
-    updates = await bot.get_updates(offset=update_id, timeout=10, allowed_updates=Update.ALL_TYPES)
-    for update in updates:
-        next_update_id = update.update_id + 1
-
-        # your bot can receive updates without messages
-        # and not all messages contain text
-        if update.message and update.message.text:
-            # Reply to the message
-            logger.info("Found message %s!", update.message.text)
-            await update.message.reply_text(update.message.text)
-        return next_update_id
-    return update_id
-
+# Função para criar a resposta no formato aceito pelo Dialogflow
+def make_webhook_response(text):
+    return jsonify({
+        "fulfillmentText": text,
+        "source": "webhook"
+    })
 
 if __name__ == '__main__':
     # Pegar a porta da variável de ambiente ou usar 5000 como padrão
