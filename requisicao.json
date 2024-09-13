@@ -1,0 +1,25 @@
+{
+  "responseId": "12345678-1234-5678-1234-567812345678",
+  "queryResult": {
+    "queryText": "Escolhi a opção 1",
+    "action": "input.welcome",
+    "parameters": {
+      "opcao": "1"
+    },
+    "allRequiredParamsPresent": true,
+    "fulfillmentText": "",
+    "fulfillmentMessages": [],
+    "outputContexts": [],
+    "intent": {
+      "name": "projects/project-id/agent/intents/intent-id",
+      "displayName": "Opção 1 Intent"
+    },
+    "intentDetectionConfidence": 0.9,
+    "languageCode": "pt-BR"
+  },
+  "originalDetectIntentRequest": {
+    "source": "telegram",
+    "payload": {}
+  },
+  "session": "projects/project-id/agent/sessions/session-id"
+}
