@@ -8,6 +8,7 @@ This program is dedicated to the public domain under the CC0 license.
 import asyncio
 import contextlib
 import logging
+import os
 from typing import NoReturn
 
 from telegram import Bot, Update
@@ -61,6 +62,8 @@ async def echo(bot: Bot, update_id: int) -> int:
     return update_id
 
 
-if __name__ == "__main__":
-    with contextlib.suppress(KeyboardInterrupt):  # Ignore exception when Ctrl-C is pressed
-        asyncio.run(main())
+if __name__ == '__main__':
+    # Pegar a porta da variável de ambiente ou usar 5000 como padrão
+    port = int(os.environ.get('PORT', 5000))
+    # Iniciar o servidor Flask
+    app.run(host='0.0.0.0', port=port)
